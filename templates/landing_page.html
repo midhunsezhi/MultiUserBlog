@@ -1,0 +1,13 @@
+<br>
+<div>
+    <a href="/newpost">Add a new post</a>
+</div>
+<br><br>
+<section>
+    {%for post in posts %}
+    <h2>{{post.subject}}</h2>
+    <strong>{{post.created}}</strong>
+    <br><hr><br>
+    <pre>{{post.content}}</pre>
+    {% endfor %}
+</section>
