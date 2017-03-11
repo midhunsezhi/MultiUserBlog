@@ -5,8 +5,10 @@
 <br><br>
 <section>
     {%for post in posts %}
-    <h2>{{post.subject}}</h2>
-    <strong>{{post.created}}</strong>
+    <a href={{'/' + post.key().id()|string}}>
+        <h2>{{post.subject}}</h2>
+    </a>
+    <strong>{{post.created.date()}}</strong>
     <br><hr><br>
     <pre>{{post.content}}</pre>
     {% endfor %}

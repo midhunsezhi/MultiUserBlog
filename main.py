@@ -47,7 +47,7 @@ class NewPost(Handler):
 
 class MainPage(Handler):
     def get(self):
-        posts = db.GqlQuery("select * from Post ORDER BY created DESC")
+        posts = db.GqlQuery("SELECT * FROM Post ORDER BY created DESC LIMIT 10")
         self.render('landing_page.html', posts=posts)
 
 class DisplayPost(Handler):
