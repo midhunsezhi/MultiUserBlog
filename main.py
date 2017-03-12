@@ -33,7 +33,7 @@ class User(db.Model):
     username = db.StringProperty(required=True)
     password = db.StringProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
-    email = db.EmailProperty()
+    email = db.StringProperty()
 
 
 class NewPost(Handler):
@@ -72,7 +72,6 @@ class UserRegistration(Handler):
         self.render('sign_up.html', username=username, password=password, verify=verify, email=email, error=error)
     def get(self):
         self.render_form()
-    
     def post(self):
         username = self.request.get('username')
         password = self.request.get('password')
@@ -103,6 +102,39 @@ class UserRegistration(Handler):
             error = "Please make sure that all fields are valid"
             self.render_form(username, password, verify, email, error)
 
+class LoginPage(Handler):
+    def render_form(self, username="", password="", error=""):
+        self.render('login.html', username=username, password=password, error=error)
+
+    def get(self):
+        self.render_form()
+
+    def post(self):
+        username = self.request.get('username')
+        password = self.request.get('password')
+
+        if username and password:
+            user = User.gql("where username = :1", username).get()
+            if user is not None:
+                password_hash = user.password
+                salt = password_hash.split(',')[1]
+                if hashlib.sha256(username + password + salt).hexdigest() + ',' + salt == password_hash:
+                    # set the user cookie
+                    user_id = user.key().id()
+                    id_hash = str(user_id) + '|' + hmac.new(SECRET, str(user_id)).hexdigest()
+                    self.response.headers.add_header('Set-Cookie', 'user_id=%s; Path=/' % id_hash)
+
+                    self.redirect("/welcome")
+                else:
+                    error = "password is not valid"
+                    self.render_form(username, password, error)
+            else:
+                error = "Username is not valid"
+                self.render_form(username, password, error)
+        else:
+            error = "Both username and password are required"
+            self.render_form(username, password, error)
+
 class WelcomePage(Handler):
     def get(self):
         def validate_cookie(user_hash):
@@ -118,6 +150,7 @@ class WelcomePage(Handler):
             user = db.get(key)
             self.render('welcome.html', username=user.username)
         else:
+            print 'here'
             self.redirect("/signup")
 
 
@@ -126,5 +159,6 @@ app = webapp2.WSGIApplication([
     ('/newpost', NewPost),
     ('/([0-9]+)', DisplayPost),
     ('/signup', UserRegistration),
-    ('/welcome', WelcomePage)
+    ('/welcome', WelcomePage),
+    ('/login', LoginPage)
 ], debug=True)

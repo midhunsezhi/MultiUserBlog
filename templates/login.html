@@ -1,0 +1,16 @@
+<form method="POST" action="/login">
+    <label>
+        Username:
+        <input name="username" value={{username}}>
+    </label>
+    
+    <br><br>
+    <label>
+        Password:
+        <input type="password" name="password" value={{password}}>
+    </label>
+    
+    <p style="color:red">{{error}}</p>
+
+    <input type='submit'>
+</form>
