@@ -1,0 +1,27 @@
+<form method="POST" action="/signup">
+    <label>
+        Username:
+        <input name="username" value={{username}}>
+    </label>
+    
+    <br><br>
+    <label>
+        Password:
+        <input type="password" name="password" value={{password}}>
+    </label>
+    
+    <br><br>
+    <label>
+        Verify Password:
+        <input type="password" name="verify" value={{verify}}>
+    </label>
+    
+    <br></br>
+    <label>
+        Email:
+        <input name="email" value={{email}}>
+    </label>
+    <p style="color:red">{{error}}</p>
+
+    <input type='submit'>
+</form>
