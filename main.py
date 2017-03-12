@@ -139,7 +139,7 @@ class WelcomePage(Handler):
     def get(self):
         def validate_cookie(user_hash):
             hash_split = user_hash.split('|')
-            if hmac.new(SECRET, hash_split[0]).hexdigest() == hash_split[1]:
+            if len(hash_split) == 2 and hmac.new(SECRET, hash_split[0]).hexdigest() == hash_split[1]:
                 return hash_split[0]
 
         user_hash = self.request.cookies.get('user_id')
@@ -153,6 +153,11 @@ class WelcomePage(Handler):
             print 'here'
             self.redirect("/signup")
 
+class Logout(Handler):
+    def get(self):
+        self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
+        self.redirect("/signup")
+
 
 app = webapp2.WSGIApplication([
     ('/', MainPage),
@@ -160,5 +165,6 @@ app = webapp2.WSGIApplication([
     ('/([0-9]+)', DisplayPost),
     ('/signup', UserRegistration),
     ('/welcome', WelcomePage),
-    ('/login', LoginPage)
+    ('/login', LoginPage),
+    ('/logout', Logout)
 ], debug=True)
