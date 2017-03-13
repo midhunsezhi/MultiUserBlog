@@ -1,4 +1,4 @@
-# Portfolio Website
+# Multi-User Blog
 
 This is a multiuser blog application built using GAE (google app engine) and python.
 

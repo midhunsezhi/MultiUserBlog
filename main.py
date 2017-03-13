@@ -5,13 +5,12 @@ import hashlib
 import string
 import random
 import hmac
-
-from google.appengine.ext import db
+from util import *
+from models import *
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
                                autoescape=True)
-SECRET = 'hack me if you can'
 
 class Handler(webapp2.RequestHandler):
     def write(self, *a, **kw):
@@ -24,34 +23,31 @@ class Handler(webapp2.RequestHandler):
     def render(self, template, **kwargs):
         self.write(self.render_str(template, **kwargs))
 
-class Post(db.Model):
-    subject = db.StringProperty(required=True)
-    content = db.TextProperty(required=True)
-    created = db.DateTimeProperty(auto_now_add=True)
-
-class User(db.Model):
-    username = db.StringProperty(required=True)
-    password = db.StringProperty(required=True)
-    created = db.DateTimeProperty(auto_now_add=True)
-    email = db.StringProperty()
-
 
 class NewPost(Handler):
     def render_form(self, subject="", content="", error=""):
         self.render('new_post.html', subject=subject, content=content, error=error)
 
     def get(self):
-        self.render_form()
+        user_hash = self.request.cookies.get('user_id')
+        user_id = validate_cookie(user_hash)
+        if user_id:
+            self.render_form()
+        else:
+            self.redirect("/login")
 
     def post(self):
         subject = self.request.get('subject')
         content = self.request.get('content')
+        user_hash = self.request.cookies.get('user_id')
+        user_id = validate_cookie(user_hash)
 
-        if subject and content:
-            post = Post(subject=subject, content=content)
+        if subject and content and user_id:
+            key = db.Key.from_path('User', int(user_id))
+            user = db.get(key)
+            post = Post(author=user, subject=subject, content=content)
             post.put()
-
-            self.redirect("/%s" % str(post.key().id()))
+            self.redirect("/post/%s" % str(post.key().id()))
         else:
             self.render_form(subject, content, "Both subject and content are required!")
 
@@ -59,7 +55,9 @@ class NewPost(Handler):
 class MainPage(Handler):
     def get(self):
         posts = db.GqlQuery("SELECT * FROM Post ORDER BY created DESC LIMIT 10")
-        self.render('landing_page.html', posts=posts)
+        user_hash = self.request.cookies.get('user_id')
+        active_user = bool(validate_cookie(user_hash))
+        self.render('landing_page.html', posts=posts, active_user=active_user)
 
 class DisplayPost(Handler):
     def get(self, post_id):
@@ -94,7 +92,7 @@ class UserRegistration(Handler):
                 id_hash = str(user_id) + '|' + hmac.new(SECRET, str(user_id)).hexdigest()
                 self.response.headers.add_header('Set-Cookie', 'user_id=%s; Path=/' % id_hash)
 
-                self.redirect("/welcome")
+                self.redirect("/")
             else:
                 error = "Username already exists, please use a different name"
                 self.render_form(username, password, verify, email, error)
@@ -124,47 +122,28 @@ class LoginPage(Handler):
                     id_hash = str(user_id) + '|' + hmac.new(SECRET, str(user_id)).hexdigest()
                     self.response.headers.add_header('Set-Cookie', 'user_id=%s; Path=/' % id_hash)
 
-                    self.redirect("/welcome")
+                    self.redirect("/")
                 else:
-                    error = "password is not valid"
+                    error = "Incorrect credentials"
                     self.render_form(username, password, error)
             else:
-                error = "Username is not valid"
+                error = "Account doesn't exist"
                 self.render_form(username, password, error)
         else:
             error = "Both username and password are required"
             self.render_form(username, password, error)
 
-class WelcomePage(Handler):
-    def get(self):
-        def validate_cookie(user_hash):
-            hash_split = user_hash.split('|')
-            if len(hash_split) == 2 and hmac.new(SECRET, hash_split[0]).hexdigest() == hash_split[1]:
-                return hash_split[0]
-
-        user_hash = self.request.cookies.get('user_id')
-        user_id = validate_cookie(user_hash)
-
-        if user_id:
-            key = db.Key.from_path('User', int(user_id))
-            user = db.get(key)
-            self.render('welcome.html', username=user.username)
-        else:
-            print 'here'
-            self.redirect("/signup")
-
 class Logout(Handler):
     def get(self):
         self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
-        self.redirect("/signup")
+        self.redirect("/login")
 
 
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/newpost', NewPost),
-    ('/([0-9]+)', DisplayPost),
+    ('/post/([0-9]+)', DisplayPost),
     ('/signup', UserRegistration),
-    ('/welcome', WelcomePage),
     ('/login', LoginPage),
     ('/logout', Logout)
 ], debug=True)

@@ -1,11 +1,12 @@
 <br>
-<div>
+<header>
     <a href="/">Home</a>
-</div>
+    <a href="/logout">Logout</a>
+</header>
 <br><br>
 <section>
     <h2>{{post.subject}}</h2>
-    <strong>{{post.created.date()}}</strong>
+    <strong>By {{post.author.username}}, on {{post.created.date()}}</strong>
     <br><hr><br>
     <pre>{{post.content}}</pre>
 </section>
