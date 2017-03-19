@@ -1,11 +1,13 @@
 <br>
 
 <div>
+    <h1>Welcome to <em>HackerScribble</em>!</h1>
     {% if active_user %}
         <a href="/newpost">Add a new post</a>
         <a href="/logout">Logout</a>
     {% else %}
         <a href="/login">Login</a>
+        <span> or </span>
         <a href="/signup">Register!</a>
     {% endif %}
     
@@ -16,8 +18,7 @@
     <a href={{'/post/' + post.key().id()|string}}>
         <h2>{{post.subject}}</h2>
     </a>
-    <strong>By {{post.author.username}}, on {{post.created.date()}}</strong>
-    <br><hr><br>
+    <p><em>{{post.author.username}}</em> ({{post.created.date()}})</p>
     <pre>{{post.content}}</pre>
     {% endfor %}
 </section>

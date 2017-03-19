@@ -3,10 +3,25 @@
     <a href="/">Home</a>
     <a href="/logout">Logout</a>
 </header>
-<br><br>
+
 <section>
     <h2>{{post.subject}}</h2>
-    <strong>By {{post.author.username}}, on {{post.created.date()}}</strong>
-    <br><hr><br>
+    <p><em>{{post.author.username}}</em> ({{post.created.date()}})</p>
     <pre>{{post.content}}</pre>
 </section>
+
+<hr><br>
+
+<form method="POST" action="/addcomment">
+    <input style="display:none" name="post_id" value={{post.key().id()}}>
+    <textarea name="content" cols="75" rows="3" placeholder="Add a comment"></textarea>
+    <p style="color:red">{{error}}</p>
+    <input type='submit'>
+</form>
+
+<h3>Comments</h3>
+{% for comment in post.comments %}
+    <pre>{{comment.content}}</pre>
+    <em>- {{comment.author.username}}</em>
+{% endfor %}
+

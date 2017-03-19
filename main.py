@@ -138,6 +138,24 @@ class Logout(Handler):
         self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
         self.redirect("/login")
 
+class AddComment(Handler):
+    def post(self):
+        user_hash = self.request.cookies.get('user_id')
+        user_id = validate_cookie(user_hash)
+        if user_id:
+            user_key = db.Key.from_path('User', int(user_id))
+            user = db.get(user_key)
+            post_id = self.request.get('post_id')
+            post_key = db.Key.from_path('Post', int(post_id))
+            post = db.get(post_key)
+            content = self.request.get('content')
+            comment = Comment(author=user, post=post, content=content)
+            comment.put()
+            self.redirect("/post/%s" % str(post.key().id()))
+        else:
+            self.redirect("/login")
+
+
 
 app = webapp2.WSGIApplication([
     ('/', MainPage),
@@ -145,5 +163,6 @@ app = webapp2.WSGIApplication([
     ('/post/([0-9]+)', DisplayPost),
     ('/signup', UserRegistration),
     ('/login', LoginPage),
-    ('/logout', Logout)
+    ('/logout', Logout),
+    ('/addcomment', AddComment)
 ], debug=True)

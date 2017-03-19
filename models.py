@@ -11,3 +11,10 @@ class Post(db.Model):
     subject = db.StringProperty(required=True)
     content = db.TextProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
+    likes = db.ListProperty(db.Key)
+
+class Comment(db.Model):
+    author = db.ReferenceProperty(User, collection_name='comments')
+    post = db.ReferenceProperty(Post, collection_name='comments')
+    content = db.TextProperty(required=True)
+    created = db.DateTimeProperty(auto_now_add=True)
