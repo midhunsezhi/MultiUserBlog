@@ -10,3 +10,5 @@ $ git clone https://github.com/midhunsezhi/MultiUserBlog.git
 $ cd MultiUserBlog
 $ dev_appserver.py .
 ```
+
+Live version demo can be found here: http://scribble-156606.appspot.com
