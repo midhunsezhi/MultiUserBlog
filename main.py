@@ -8,6 +8,7 @@ import hmac
 from util import *
 from models import *
 
+
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
                                autoescape=True)
@@ -63,7 +64,20 @@ class DisplayPost(Handler):
     def get(self, post_id):
         key = db.Key.from_path('Post', int(post_id))
         post = db.get(key)
-        self.render('post_page.html', post=post)
+        user_hash = self.request.cookies.get('user_id')
+        user_id = user_hash and validate_cookie(user_hash)
+        self.render('post_page.html', post=post, user_id=user_id)
+
+    def post(self, post_id):
+        user_hash = self.request.cookies.get('user_id')
+        user_id = validate_cookie(user_hash)
+        key = db.Key.from_path('Post', int(post_id))
+        post = db.get(key)
+        if user_id and str(post.author.key().id()) == user_id:
+            post.delete()
+            self.redirect("/")
+        else:
+            self.redirect("/login")
 
 class UserRegistration(Handler):
     def render_form(self, username="", password="", verify="", email="", error=""):
@@ -172,6 +186,42 @@ class LikeHandler(Handler):
         else:
             self.redirect("/login")
 
+class EditPostHandler(Handler):
+    def get(self):
+        user_hash = self.request.cookies.get('user_id')
+        user_id = validate_cookie(user_hash)
+        if user_id:
+            user_key = db.Key.from_path('User', int(user_id))
+            user = db.get(user_key)
+            post_id = self.request.get('post_id')
+            post_key = db.Key.from_path('Post', int(post_id))
+            post = db.get(post_key)
+            if post.author.key() == user.key():
+                self.render("edit_post.html", post=post)
+            else:
+                self.redirect("/post/%s" % str(post.key().id()))
+        else:
+            self.redirect("/login")
+
+    def post(self):
+        subject = self.request.get('subject')
+        content = self.request.get('content')
+        user_hash = self.request.cookies.get('user_id')
+        user_id = validate_cookie(user_hash)
+        post_id = self.request.get('post_id')
+        post_key = db.Key.from_path('Post', int(post_id))
+        post = db.get(post_key)
+
+        if user_id:
+            if subject:
+                post.subject = subject
+            if content:
+                post.content = content
+            post.put()
+            self.redirect("/post/%s" % str(post.key().id()))
+        else:
+            self.redirect("/login")
+
 
 
 app = webapp2.WSGIApplication([
@@ -182,5 +232,6 @@ app = webapp2.WSGIApplication([
     ('/login', LoginPage),
     ('/logout', Logout),
     ('/addcomment', AddComment),
-    ('/like', LikeHandler)
+    ('/like', LikeHandler),
+    ('/editpost', EditPostHandler)
 ], debug=True)

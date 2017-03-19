@@ -1,0 +1,16 @@
+<header>
+    <a href="/">Home</a>
+</header>
+<br><br>
+<form method="POST" action="/editpost">
+    <input
+    <input name="subject" value={{post.subject}}>
+    <br><br>
+    <textarea name="content" cols="75" rows="30">{{post.content}}</textarea>
+    <br><br>
+    <p style="color:red">{{error}}</p>
+    <input style="display: none" name="post_id" value={{post.key().id()}}>
+    <input type='submit' value="Update Post">
+</form>
+
+<a href={{"/post/%s" % post.key().id()|string}}>Discard and go back to the original post</a>

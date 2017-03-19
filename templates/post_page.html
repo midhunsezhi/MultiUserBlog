@@ -7,6 +7,12 @@
 <section>
     <h2>{{post.subject}}</h2>
     <p><em>{{post.author.username}}</em> ({{post.created.date()}})</p>
+    {% if user_id and user_id == post.author.key().id()|string %}
+        <form method="POST" action={{"/post/%s" % post.key().id()|string}}>
+            <a href={{"/editpost?post_id=%s" % post.key().id()|string}}><button>Edit Post</button></a>
+            <input type='submit' value='Delete Post'>
+        </form>
+    {% endif %}
     <pre>{{post.content}}</pre>
     <em>Likes: {{post.likes|length}} | Comments: {{post.comments.count()}}</em>
     <br><br>
