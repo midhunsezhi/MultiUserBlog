@@ -20,5 +20,6 @@
     </a>
     <p><em>{{post.author.username}}</em> ({{post.created.date()}})</p>
     <pre>{{post.content}}</pre>
+    <em>Likes: {{post.likes|length}} | Comments: {{post.comments.count()}}</em>
     {% endfor %}
 </section>

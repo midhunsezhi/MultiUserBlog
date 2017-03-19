@@ -8,15 +8,21 @@
     <h2>{{post.subject}}</h2>
     <p><em>{{post.author.username}}</em> ({{post.created.date()}})</p>
     <pre>{{post.content}}</pre>
+    <em>Likes: {{post.likes|length}} | Comments: {{post.comments.count()}}</em>
+    <br><br>
+    <form method="POST" action="/like">
+        <input style="display:none" name="post_id" value={{post.key().id()}}>
+        <input type='submit' value='Like'>
+    </form>
 </section>
 
 <hr><br>
 
 <form method="POST" action="/addcomment">
     <input style="display:none" name="post_id" value={{post.key().id()}}>
-    <textarea name="content" cols="75" rows="3" placeholder="Add a comment"></textarea>
+    <textarea name="content" cols="75" rows="3" placeholder="Type your comment here"></textarea>
     <p style="color:red">{{error}}</p>
-    <input type='submit'>
+    <input type='submit' value='Add comment'>
 </form>
 
 <h3>Comments</h3>

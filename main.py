@@ -155,6 +155,23 @@ class AddComment(Handler):
         else:
             self.redirect("/login")
 
+class LikeHandler(Handler):
+    def post(self):
+        user_hash = self.request.cookies.get('user_id')
+        user_id = validate_cookie(user_hash)
+        if user_id:
+            user_key = db.Key.from_path('User', int(user_id))
+            user = db.get(user_key)
+            post_id = self.request.get('post_id')
+            post_key = db.Key.from_path('Post', int(post_id))
+            post = db.get(post_key)
+            if (post.author.key() != user.key()) and (user_key not in post.likes):
+                post.likes.append(user_key)
+                post.put()
+            self.redirect("/post/%s" % str(post.key().id()))
+        else:
+            self.redirect("/login")
+
 
 
 app = webapp2.WSGIApplication([
@@ -164,5 +181,6 @@ app = webapp2.WSGIApplication([
     ('/signup', UserRegistration),
     ('/login', LoginPage),
     ('/logout', Logout),
-    ('/addcomment', AddComment)
+    ('/addcomment', AddComment),
+    ('/like', LikeHandler)
 ], debug=True)
