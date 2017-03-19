@@ -76,7 +76,7 @@ class DisplayPost(Handler):
         post = db.get(key)
         if user_id and str(post.author.key().id()) == user_id:
             post.delete()
-            time.sleep(0.1)
+            time.sleep(0.1) # work around to have updates visible on load
             self.redirect("/")
         else:
             self.redirect("/login")
@@ -96,6 +96,7 @@ class UserRegistration(Handler):
             def make_salt():
                 return ''.join(random.choice(string.letters) for x in xrange(5))
 
+            # check that username is unique and hash passwords using randomly generated salt
             usersWithName = User.gql("where username = :1", username).get()
             if usersWithName is None:
                 #hash password and save to db
@@ -127,6 +128,7 @@ class LoginPage(Handler):
         username = self.request.get('username')
         password = self.request.get('password')
 
+        # check for username and password match and set user cookie 
         if username and password:
             user = User.gql("where username = :1", username).get()
             if user is not None:
@@ -168,7 +170,7 @@ class AddComment(Handler):
             if user and post and content:
                 comment = Comment(author=user, post=post, content=content)
                 comment.put()
-                time.sleep(0.1)
+                time.sleep(0.1) # work around to have updates visible on load
             self.redirect("/post/%s" % str(post.key().id()))
         else:
             self.redirect("/login")
@@ -252,7 +254,7 @@ class EditCommentHandler(Handler):
             if content:
                 comment.content = content
             comment.put()
-            time.sleep(0.1)
+            time.sleep(0.1) # work around to have updates visible on load
             self.redirect("/post/%s" % str(comment.post.key().id()))
         else:
             self.redirect("/login")
@@ -266,7 +268,7 @@ class DeleteCommentHandler(Handler):
         comment = db.get(comment_key)
         if user_id and str(comment.author.key().id()) == user_id:
             comment.delete()
-            time.sleep(0.1)
+            time.sleep(0.1) # work around to have updates visible on load
             self.redirect("/post/%s" % str(comment.post.key().id()))
         else:
             self.redirect("/login")
