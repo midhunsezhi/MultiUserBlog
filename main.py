@@ -166,6 +166,11 @@ class AddComment(Handler):
             post_id = self.request.get('post_id')
             post_key = db.Key.from_path('Post', int(post_id))
             post = db.get(post_key)
+            if not post:
+                self.error(404)
+                self.write("<strong> We're sorry, the resource you're trying to access no longer exists. \
+                        <a href='/'><em>Go to Home Page</em></a></strong>")
+                return
             content = self.request.get('content')
             if user and post and content:
                 comment = Comment(author=user, post=post, content=content)
@@ -202,6 +207,11 @@ class EditPostHandler(Handler):
             post_id = self.request.get('post_id')
             post_key = db.Key.from_path('Post', int(post_id))
             post = db.get(post_key)
+            if not post:
+                self.error(404)
+                self.write("<strong> We're sorry, the resource you're trying to access no longer exists. \
+                        <a href='/'><em>Go to Home Page</em></a></strong>")
+                return
             if post.author.key() == user.key():
                 self.render("edit_post.html", post=post)
             else:
@@ -217,6 +227,11 @@ class EditPostHandler(Handler):
         post_id = self.request.get('post_id')
         post_key = db.Key.from_path('Post', int(post_id))
         post = db.get(post_key)
+        if not post:
+            self.error(404)
+            self.write("<strong> We're sorry, the resource you're trying to access no longer exists. \
+                        <a href='/'><em>Go to Home Page</em></a></strong>")
+            return
 
         if user_id:
             if subject:
@@ -238,6 +253,11 @@ class EditCommentHandler(Handler):
             comment_id = self.request.get('comment_id')
             comment_key = db.Key.from_path('Comment', int(comment_id))
             comment = db.get(comment_key)
+            if not comment:
+                self.error(404)
+                self.write("<strong> We're sorry, the resource you're trying to access no longer exists. \
+                            <a href='/'><em>Go to Home Page</em></a></strong>")
+                return
             if comment.author.key() == user.key():
                 self.render("edit_comment.html", comment=comment)
         else:
@@ -250,6 +270,11 @@ class EditCommentHandler(Handler):
         comment_id = self.request.get('comment_id')
         comment_key = db.Key.from_path('Comment', int(comment_id))
         comment = db.get(comment_key)
+        if not comment:
+            self.error(404)
+            self.write("<strong> We're sorry, the resource you're trying to access no longer exists. \
+                        <a href='/'><em>Go to Home Page</em></a></strong>")
+            return
         if user_id:
             if content:
                 comment.content = content
@@ -266,6 +291,11 @@ class DeleteCommentHandler(Handler):
         comment_id = self.request.get('comment_id')
         comment_key = db.Key.from_path('Comment', int(comment_id))
         comment = db.get(comment_key)
+        if not comment:
+            self.error(404)
+            self.write("<strong> We're sorry, the resource you're trying to access no longer exists. \
+                        <a href='/'><em>Go to Home Page</em></a></strong>")
+            return
         if user_id and str(comment.author.key().id()) == user_id:
             comment.delete()
             time.sleep(0.1) # work around to have updates visible on load
