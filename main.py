@@ -1,6 +1,4 @@
 import os
-import webapp2
-import jinja2
 import hashlib
 import string
 import random
@@ -8,10 +6,12 @@ import hmac
 import time
 from util import *
 from models import *
+import jinja2
+import webapp2
 
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
-jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
+jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
                                autoescape=True)
 
 class Handler(webapp2.RequestHandler):
@@ -42,7 +42,7 @@ class NewPost(Handler):
         subject = self.request.get('subject')
         content = self.request.get('content')
         user_hash = self.request.cookies.get('user_id')
-        user_id = validate_cookie(user_hash) 
+        user_id = validate_cookie(user_hash)
 
         if subject and content and user_id:
             key = db.Key.from_path('User', int(user_id))
@@ -76,8 +76,8 @@ class DisplayPost(Handler):
         post = db.get(key)
         if not post:
             self.error(404)
-            self.write("<strong> We're sorry, the resource you're trying to access no longer exists. \
-                    <a href='/'><em>Go to Home Page</em></a></strong>")
+            self.write("<strong> We're sorry, the resource you're trying to access no \
+                        longer exists. <a href='/'><em>Go to Home Page</em></a></strong>")
             return
         if user_id and str(post.author.key().id()) == user_id:
             post.delete()
@@ -88,7 +88,8 @@ class DisplayPost(Handler):
 
 class UserRegistration(Handler):
     def render_form(self, username="", password="", verify="", email="", error=""):
-        self.render('sign_up.html', username=username, password=password, verify=verify, email=email, error=error)
+        self.render('sign_up.html', username=username, password=password,
+                    verify=verify, email=email, error=error)
     def get(self):
         self.render_form()
     def post(self):
@@ -133,13 +134,14 @@ class LoginPage(Handler):
         username = self.request.get('username')
         password = self.request.get('password')
 
-        # check for username and password match and set user cookie 
+        #check for username and password match and set user cookie
         if username and password:
             user = User.gql("where username = :1", username).get()
             if user is not None:
                 password_hash = user.password
                 salt = password_hash.split(',')[1]
-                if hashlib.sha256(username + password + salt).hexdigest() + ',' + salt == password_hash:
+                if hashlib.sha256(username + password + salt).hexdigest() \
+                   + ',' + salt == password_hash:
                     # set the user cookie
                     user_id = user.key().id()
                     id_hash = str(user_id) + '|' + hmac.new(SECRET, str(user_id)).hexdigest()
@@ -173,8 +175,8 @@ class AddComment(Handler):
             post = db.get(post_key)
             if not post:
                 self.error(404)
-                self.write("<strong> We're sorry, the resource you're trying to access no longer exists. \
-                        <a href='/'><em>Go to Home Page</em></a></strong>")
+                self.write("<strong> We're sorry, the resource you're trying to access no \
+                        longer exists. <a href='/'><em>Go to Home Page</em></a></strong>")
                 return
             content = self.request.get('content')
             if user and post and content:
@@ -214,8 +216,8 @@ class EditPostHandler(Handler):
             post = db.get(post_key)
             if not post:
                 self.error(404)
-                self.write("<strong> We're sorry, the resource you're trying to access no longer exists. \
-                        <a href='/'><em>Go to Home Page</em></a></strong>")
+                self.write("<strong> We're sorry, the resource you're trying to access no \
+                        longer exists. <a href='/'><em>Go to Home Page</em></a></strong>")
                 return
             if post.author.key() == user.key():
                 self.render("edit_post.html", post=post)
@@ -234,16 +236,17 @@ class EditPostHandler(Handler):
         post = db.get(post_key)
         if not post:
             self.error(404)
-            self.write("<strong> We're sorry, the resource you're trying to access no longer exists. \
-                        <a href='/'><em>Go to Home Page</em></a></strong>")
+            self.write("<strong> We're sorry, the resource you're trying to access no \
+                        longer exists. <a href='/'><em>Go to Home Page</em></a></strong>")
             return
 
         if user_id:
-            if subject:
-                post.subject = subject
-            if content:
-                post.content = content
-            post.put()
+            if post.author.key().id() == user_id:
+                if subject:
+                    post.subject = subject
+                if content:
+                    post.content = content
+                post.put()
             self.redirect("/post/%s" % str(post.key().id()))
         else:
             self.redirect("/login")
@@ -260,8 +263,8 @@ class EditCommentHandler(Handler):
             comment = db.get(comment_key)
             if not comment:
                 self.error(404)
-                self.write("<strong> We're sorry, the resource you're trying to access no longer exists. \
-                            <a href='/'><em>Go to Home Page</em></a></strong>")
+                self.write("<strong> We're sorry, the resource you're trying to access no \
+                        longer exists. <a href='/'><em>Go to Home Page</em></a></strong>")
                 return
             if comment.author.key() == user.key():
                 self.render("edit_comment.html", comment=comment)
@@ -277,14 +280,15 @@ class EditCommentHandler(Handler):
         comment = db.get(comment_key)
         if not comment:
             self.error(404)
-            self.write("<strong> We're sorry, the resource you're trying to access no longer exists. \
-                        <a href='/'><em>Go to Home Page</em></a></strong>")
+            self.write("<strong> We're sorry, the resource you're trying to access no \
+                        longer exists. <a href='/'><em>Go to Home Page</em></a></strong>")
             return
         if user_id:
-            if content:
-                comment.content = content
-            comment.put()
-            time.sleep(0.1) # work around to have updates visible on load
+            if comment.author.key().id() == user_id:
+                if content:
+                    comment.content = content
+                comment.put()
+                time.sleep(0.1) # work around to have updates visible on load
             self.redirect("/post/%s" % str(comment.post.key().id()))
         else:
             self.redirect("/login")
@@ -298,8 +302,8 @@ class DeleteCommentHandler(Handler):
         comment = db.get(comment_key)
         if not comment:
             self.error(404)
-            self.write("<strong> We're sorry, the resource you're trying to access no longer exists. \
-                        <a href='/'><em>Go to Home Page</em></a></strong>")
+            self.write("<strong> We're sorry, the resource you're trying to access no \
+                        longer exists. <a href='/'><em>Go to Home Page</em></a></strong>")
             return
         if user_id and str(comment.author.key().id()) == user_id:
             comment.delete()
