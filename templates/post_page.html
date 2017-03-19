@@ -40,7 +40,7 @@
         <p><a href={{"/editcomment?comment_id=%s" % comment.key().id()|string}}><button>Edit Comment</button></a></p>
         <form method="POST" action="/deletecomment">
             <input style="display: none" name="comment_id" value={{comment.key().id()}}>
-            <input type='submit' value='Delete Post'>
+            <input type='submit' value='Delete Comment'>
         </form>
     {% endif %}
     <hr>
