@@ -74,6 +74,11 @@ class DisplayPost(Handler):
         user_id = validate_cookie(user_hash)
         key = db.Key.from_path('Post', int(post_id))
         post = db.get(key)
+        if not post:
+            self.error(404)
+            self.write("<strong> We're sorry, the resource you're trying to access no longer exists. \
+                    <a href='/'><em>Go to Home Page</em></a></strong>")
+            return
         if user_id and str(post.author.key().id()) == user_id:
             post.delete()
             time.sleep(0.1) # work around to have updates visible on load
