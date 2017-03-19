@@ -1,0 +1,12 @@
+<header>
+    <a href="/">Home</a>
+</header>
+<br><br>
+<form method="POST" action="/editcomment">
+    <textarea name="content" cols="75" rows="3">{{comment.content}}</textarea>
+    <br><br>
+    <input style="display: none" name="comment_id" value={{comment.key().id()}}>
+    <input type='submit' value="Update Comment">
+</form>
+
+<a href={{"/post/%s" % comment.post.key().id()|string}}>Discard and go back to the original post</a>

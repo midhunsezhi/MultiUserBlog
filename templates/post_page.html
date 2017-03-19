@@ -8,18 +8,20 @@
     <h2>{{post.subject}}</h2>
     <p><em>{{post.author.username}}</em> ({{post.created.date()}})</p>
     {% if user_id and user_id == post.author.key().id()|string %}
+        <p><a href={{"/editpost?post_id=%s" % post.key().id()|string}}><button>Edit Post</button></a></p>
         <form method="POST" action={{"/post/%s" % post.key().id()|string}}>
-            <a href={{"/editpost?post_id=%s" % post.key().id()|string}}><button>Edit Post</button></a>
             <input type='submit' value='Delete Post'>
         </form>
     {% endif %}
     <pre>{{post.content}}</pre>
     <em>Likes: {{post.likes|length}} | Comments: {{post.comments.count()}}</em>
     <br><br>
-    <form method="POST" action="/like">
-        <input style="display:none" name="post_id" value={{post.key().id()}}>
-        <input type='submit' value='Like'>
-    </form>
+    {% if user_id and user_id != post.author.key().id()|string %}
+        <form method="POST" action="/like">
+            <input style="display:none" name="post_id" value={{post.key().id()}}>
+            <input type='submit' value='Like'>
+        </form>
+    {% endif %}
 </section>
 
 <hr><br>
@@ -35,5 +37,13 @@
 {% for comment in post.comments %}
     <pre>{{comment.content}}</pre>
     <em>- {{comment.author.username}}</em>
+    {% if user_id and user_id == comment.author.key().id()|string %}
+        <p><a href={{"/editcomment?comment_id=%s" % comment.key().id()|string}}><button>Edit Comment</button></a></p>
+        <form method="POST" action="/deletecomment">
+            <input style="display: none" name="comment_id" value={{comment.key().id()}}>
+            <input type='submit' value='Delete Post'>
+        </form>
+    {% endif %}
+    <hr>
 {% endfor %}
 

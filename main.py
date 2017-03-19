@@ -5,6 +5,7 @@ import hashlib
 import string
 import random
 import hmac
+import time
 from util import *
 from models import *
 
@@ -41,7 +42,7 @@ class NewPost(Handler):
         subject = self.request.get('subject')
         content = self.request.get('content')
         user_hash = self.request.cookies.get('user_id')
-        user_id = validate_cookie(user_hash)
+        user_id = validate_cookie(user_hash) 
 
         if subject and content and user_id:
             key = db.Key.from_path('User', int(user_id))
@@ -75,6 +76,7 @@ class DisplayPost(Handler):
         post = db.get(key)
         if user_id and str(post.author.key().id()) == user_id:
             post.delete()
+            time.sleep(0.1)
             self.redirect("/")
         else:
             self.redirect("/login")
@@ -163,8 +165,10 @@ class AddComment(Handler):
             post_key = db.Key.from_path('Post', int(post_id))
             post = db.get(post_key)
             content = self.request.get('content')
-            comment = Comment(author=user, post=post, content=content)
-            comment.put()
+            if user and post and content:
+                comment = Comment(author=user, post=post, content=content)
+                comment.put()
+                time.sleep(0.1)
             self.redirect("/post/%s" % str(post.key().id()))
         else:
             self.redirect("/login")
@@ -222,7 +226,50 @@ class EditPostHandler(Handler):
         else:
             self.redirect("/login")
 
+class EditCommentHandler(Handler):
+    def get(self):
+        user_hash = self.request.cookies.get('user_id')
+        user_id = validate_cookie(user_hash)
+        if user_id:
+            user_key = db.Key.from_path('User', int(user_id))
+            user = db.get(user_key)
+            comment_id = self.request.get('comment_id')
+            comment_key = db.Key.from_path('Comment', int(comment_id))
+            comment = db.get(comment_key)
+            if comment.author.key() == user.key():
+                self.render("edit_comment.html", comment=comment)
+        else:
+            self.redirect("/login")
 
+    def post(self):
+        content = self.request.get('content')
+        user_hash = self.request.cookies.get('user_id')
+        user_id = validate_cookie(user_hash)
+        comment_id = self.request.get('comment_id')
+        comment_key = db.Key.from_path('Comment', int(comment_id))
+        comment = db.get(comment_key)
+        if user_id:
+            if content:
+                comment.content = content
+            comment.put()
+            time.sleep(0.1)
+            self.redirect("/post/%s" % str(comment.post.key().id()))
+        else:
+            self.redirect("/login")
+
+class DeleteCommentHandler(Handler):
+    def post(self):
+        user_hash = self.request.cookies.get('user_id')
+        user_id = validate_cookie(user_hash)
+        comment_id = self.request.get('comment_id')
+        comment_key = db.Key.from_path('Comment', int(comment_id))
+        comment = db.get(comment_key)
+        if user_id and str(comment.author.key().id()) == user_id:
+            comment.delete()
+            time.sleep(0.1)
+            self.redirect("/post/%s" % str(comment.post.key().id()))
+        else:
+            self.redirect("/login")
 
 app = webapp2.WSGIApplication([
     ('/', MainPage),
@@ -233,5 +280,7 @@ app = webapp2.WSGIApplication([
     ('/logout', Logout),
     ('/addcomment', AddComment),
     ('/like', LikeHandler),
-    ('/editpost', EditPostHandler)
+    ('/editpost', EditPostHandler),
+    ('/editcomment', EditCommentHandler),
+    ('/deletecomment', DeleteCommentHandler)
 ], debug=True)
